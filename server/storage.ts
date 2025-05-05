@@ -1,7 +1,10 @@
 import { 
+  users, domains, projects, databases, activities, systemMetrics,
   User, InsertUser, Project, InsertProject, Domain, InsertDomain,
   Database, InsertDatabase, Activity, InsertActivity, SystemMetric, InsertSystemMetric
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc } from "drizzle-orm";
 
 // Define the storage interface with all CRUD methods needed
 export interface IStorage {
@@ -440,4 +443,170 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Create a DatabaseStorage implementation to replace MemStorage
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async getProjects(): Promise<Project[]> {
+    return await db.select().from(projects);
+  }
+
+  async getProject(id: number): Promise<Project | undefined> {
+    const [project] = await db.select().from(projects).where(eq(projects.id, id));
+    return project || undefined;
+  }
+
+  async createProject(insertProject: InsertProject): Promise<Project> {
+    const [project] = await db
+      .insert(projects)
+      .values(insertProject)
+      .returning();
+    return project;
+  }
+
+  async updateProject(id: number, updateData: Partial<Project>): Promise<Project | undefined> {
+    const [project] = await db
+      .update(projects)
+      .set(updateData)
+      .where(eq(projects.id, id))
+      .returning();
+    return project || undefined;
+  }
+
+  async deleteProject(id: number): Promise<boolean> {
+    const result = await db
+      .delete(projects)
+      .where(eq(projects.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  async getDomains(): Promise<Domain[]> {
+    return await db.select().from(domains);
+  }
+
+  async getDomain(id: number): Promise<Domain | undefined> {
+    const [domain] = await db.select().from(domains).where(eq(domains.id, id));
+    return domain || undefined;
+  }
+
+  async getDomainByName(name: string): Promise<Domain | undefined> {
+    const [domain] = await db.select().from(domains).where(eq(domains.name, name));
+    return domain || undefined;
+  }
+
+  async createDomain(insertDomain: InsertDomain): Promise<Domain> {
+    const [domain] = await db
+      .insert(domains)
+      .values(insertDomain)
+      .returning();
+    return domain;
+  }
+
+  async updateDomain(id: number, updateData: Partial<Domain>): Promise<Domain | undefined> {
+    const [domain] = await db
+      .update(domains)
+      .set(updateData)
+      .where(eq(domains.id, id))
+      .returning();
+    return domain || undefined;
+  }
+
+  async deleteDomain(id: number): Promise<boolean> {
+    const result = await db
+      .delete(domains)
+      .where(eq(domains.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  async getDatabases(): Promise<Database[]> {
+    return await db.select().from(databases);
+  }
+
+  async getDatabase(id: number): Promise<Database | undefined> {
+    const [database] = await db.select().from(databases).where(eq(databases.id, id));
+    return database || undefined;
+  }
+
+  async getDatabaseByName(name: string): Promise<Database | undefined> {
+    const [database] = await db.select().from(databases).where(eq(databases.name, name));
+    return database || undefined;
+  }
+
+  async createDatabase(insertDatabase: InsertDatabase): Promise<Database> {
+    const [database] = await db
+      .insert(databases)
+      .values(insertDatabase)
+      .returning();
+    return database;
+  }
+
+  async deleteDatabase(id: number): Promise<boolean> {
+    const result = await db
+      .delete(databases)
+      .where(eq(databases.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  async getActivities(limit: number = 10): Promise<Activity[]> {
+    return await db
+      .select()
+      .from(activities)
+      .orderBy(desc(activities.createdAt))
+      .limit(limit);
+  }
+
+  async getProjectActivities(projectId: number, limit: number = 10): Promise<Activity[]> {
+    return await db
+      .select()
+      .from(activities)
+      .where(eq(activities.projectId, projectId))
+      .orderBy(desc(activities.createdAt))
+      .limit(limit);
+  }
+
+  async createActivity(insertActivity: InsertActivity): Promise<Activity> {
+    const [activity] = await db
+      .insert(activities)
+      .values(insertActivity)
+      .returning();
+    return activity;
+  }
+
+  async getLatestSystemMetrics(): Promise<SystemMetric | undefined> {
+    const [metric] = await db
+      .select()
+      .from(systemMetrics)
+      .orderBy(desc(systemMetrics.timestamp))
+      .limit(1);
+    return metric || undefined;
+  }
+
+  async createSystemMetrics(insertMetrics: InsertSystemMetric): Promise<SystemMetric> {
+    const [metric] = await db
+      .insert(systemMetrics)
+      .values(insertMetrics)
+      .returning();
+    return metric;
+  }
+}
+
+export const storage = new DatabaseStorage();
