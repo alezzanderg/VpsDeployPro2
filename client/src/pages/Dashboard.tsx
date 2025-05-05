@@ -10,7 +10,7 @@ import { ResourceUsage } from "@/components/ui/ResourceUsage";
 import { NewProjectModal } from "@/components/modals/NewProjectModal";
 import { InstallationModal } from "@/components/modals/InstallationModal";
 import { apiRequest } from "@/lib/queryClient";
-import { Project, Activity, SystemMetric } from "@/lib/types";
+import { Project, Activity, SystemMetric, Database } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
@@ -56,6 +56,14 @@ export default function Dashboard() {
     isLoading: metricsLoading
   } = useQuery<SystemMetric>({
     queryKey: ['/api/system-metrics'],
+  });
+  
+  // Fetch databases
+  const {
+    data: databases = [],
+    isLoading: databasesLoading
+  } = useQuery<Database[]>({
+    queryKey: ['/api/databases'],
   });
   
   // Function to restart a project
@@ -155,13 +163,13 @@ export default function Dashboard() {
                 <i className="ri-add-line mr-2"></i>
                 New Project
               </button>
-              <a 
-                href="#" 
+              <Link 
+                href="/docs/cli-reference" 
                 className="inline-flex items-center px-3 py-2 border border-gray-700 text-sm text-gray-400 rounded-md hover:border-gray-500"
               >
                 <i className="ri-terminal-line mr-2"></i>
                 CLI Docs
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -174,8 +182,8 @@ export default function Dashboard() {
               iconColor="text-[#0070f3]"
               iconBgColor="bg-blue-500 bg-opacity-20"
               trend={{
-                value: "2 new this week",
-                positive: true
+                value: `${projects.length} total`,
+                positive: projects.length > 0
               }}
             />
             
@@ -186,31 +194,30 @@ export default function Dashboard() {
               iconColor="text-[#6366f1]"
               iconBgColor="bg-indigo-500 bg-opacity-20"
               trend={{
-                value: "All active",
-                positive: true
+                value: projects.filter(p => p.domain).length > 0 ? 
+                  "All domains active" : 
+                  "No domains configured",
+                positive: projects.filter(p => p.domain).length > 0
               }}
             />
             
             <StatCard
               title="Databases"
-              value="2"
+              value={databases.length.toString()}
               icon="database-2-line"
               iconColor="text-[#10b981]"
               iconBgColor="bg-green-500 bg-opacity-20"
               trend={{
-                value: "1 PostgreSQL, 1 MySQL",
-                positive: true
+                value: databases.length > 0 
+                  ? `${databases.map(db => db.type).filter((v, i, a) => a.indexOf(v) === i).join(', ')}` 
+                  : "No databases",
+                positive: databases.length > 0
               }}
             />
             
             <StatCard
               title="Server Status"
-              value={
-                <div className="flex items-center">
-                  <span className="text-2xl font-semibold mr-2">Good</span>
-                  <span className="h-2 w-2 bg-[#10b981] rounded-full"></span>
-                </div>
-              }
+              value="Good"
               icon="server-line"
               iconColor="text-[#f59e0b]"
               iconBgColor="bg-yellow-500 bg-opacity-20"
@@ -225,8 +232,8 @@ export default function Dashboard() {
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Recent Projects</h2>
-              <Link href="/projects">
-                <a className="text-[#0070f3] text-sm">View all projects</a>
+              <Link href="/projects" className="text-[#0070f3] text-sm">
+                View all projects
               </Link>
             </div>
 

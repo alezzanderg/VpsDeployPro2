@@ -57,15 +57,13 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Our app should run on port 8080
-  const appPort = 8080;
+  // Use port 5000 for Replit workflow compatibility
+  const port = 5000;
   
-  // Listen on our main application port (8080)
   server.listen({
-    port: appPort,
+    port,
     host: "0.0.0.0",
-    reusePort: true,
   }, () => {
-    log(`serving on application port ${appPort}`);
+    log(`serving on application port ${port}`);
   });
 })();

@@ -84,6 +84,20 @@ export function Sidebar({ className }: SidebarProps) {
             <i className="ri-settings-line mr-3 text-lg"></i>
             <span>Settings</span>
         </Link>
+
+        <div className="mt-6 mb-2 px-3">
+          <h3 className="text-xs font-medium text-gray-500 uppercase">Documentation</h3>
+        </div>
+        
+        <Link href="/docs/cli-reference" className={cn(
+            "flex items-center px-3 py-2 text-sm rounded-md group",
+            isActive("/docs/cli-reference") 
+              ? "bg-[#0070f3] bg-opacity-20 text-[#0070f3]" 
+              : "text-gray-400 hover:bg-[#1e1e1e] hover:bg-opacity-40"
+          )}>
+            <i className="ri-terminal-line mr-3 text-lg"></i>
+            <span>CLI Reference</span>
+        </Link>
       </nav>
       
       <div className="p-4 border-t border-gray-800">

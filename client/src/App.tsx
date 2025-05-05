@@ -9,6 +9,7 @@ import Domains from "@/pages/Domains";
 import Databases from "@/pages/Databases";
 import Logs from "@/pages/Logs";
 import Settings from "@/pages/Settings";
+import CliReference from "@/pages/CliReference";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/databases" component={Databases} />
       <Route path="/logs" component={Logs} />
       <Route path="/settings" component={Settings} />
+      <Route path="/docs/cli-reference" component={CliReference} />
       <Route component={NotFound} />
     </Switch>
   );
