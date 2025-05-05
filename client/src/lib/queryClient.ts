@@ -25,19 +25,27 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  // Ensure URLs starting with /api use the correct server URL
-  const baseUrl = url.startsWith('/api') ? getServerUrl() : '';
-  const fullUrl = `${baseUrl}${url}`;
-  
-  const res = await fetch(fullUrl, {
-    method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
+  try {
+    // Ensure URLs starting with /api use the correct server URL
+    const baseUrl = url.startsWith('/api') ? getServerUrl() : '';
+    const fullUrl = `${baseUrl}${url}`;
+    
+    console.log(`Making ${method} request to: ${fullUrl}`);
+    
+    const res = await fetch(fullUrl, {
+      method,
+      headers: data ? { "Content-Type": "application/json" } : {},
+      body: data ? JSON.stringify(data) : undefined,
+      credentials: "include",
+      mode: "cors"
+    });
 
-  await throwIfResNotOk(res);
-  return res;
+    await throwIfResNotOk(res);
+    return res;
+  } catch (error) {
+    console.error("API request failed:", error);
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
@@ -46,21 +54,29 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const url = queryKey[0] as string;
-    // Ensure URLs starting with /api use the correct server URL
-    const baseUrl = url.startsWith('/api') ? getServerUrl() : '';
-    const fullUrl = `${baseUrl}${url}`;
-    
-    const res = await fetch(fullUrl, {
-      credentials: "include",
-    });
+    try {
+      const url = queryKey[0] as string;
+      // Ensure URLs starting with /api use the correct server URL
+      const baseUrl = url.startsWith('/api') ? getServerUrl() : '';
+      const fullUrl = `${baseUrl}${url}`;
+      
+      console.log(`Making GET request to: ${fullUrl}`);
+      
+      const res = await fetch(fullUrl, {
+        credentials: "include",
+        mode: "cors"
+      });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        return null;
+      }
+
+      await throwIfResNotOk(res);
+      return await res.json();
+    } catch (error) {
+      console.error("Query failed:", error);
+      throw error;
     }
-
-    await throwIfResNotOk(res);
-    return await res.json();
   };
 
 export const queryClient = new QueryClient({
